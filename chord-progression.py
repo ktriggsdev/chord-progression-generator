@@ -1,52 +1,98 @@
 import streamlit as st
-import librosa
+import numpy as np
+import pyaudio
+import wave
 
 # Define the chord progressions
-chords = [
+chord_progressions = [
     ["C", "G", "Am", "F"],
-    ["Dm", "G", "C", "Am"],
-    ["Em", "A", "D", "G"],
-    ["Fmaj7", "Bbmaj7", "Ebmaj7", "Abmaj7"],
-    ["Bbm7b5", "Ebmaj7", "Abmaj7", "Dbmaj7"],
-    ["Gb7b5", "Dbmaj7", "Abmaj7", "Ebmaj7"],
+    ["Dm", "G", "Am", "C"],
+    ["Em", "A", "Dm", "G"],
+    ["F", "C", "G", "Am"],
 ]
 
 # Define the function to generate a chord progression
 def generate_chord_progression(key, mode):
-    # Get the chords for the given key and mode
-    chords_for_key = chords[key]
-    chords_for_mode = [chords_for_key[i] for i in mode]
+    chords = []
+    for chord in chord_progressions:
+        chords.append(get_chord(key, mode, chord))
+    return chords
 
-    # Generate a random chord progression
-    progression = []
-    for i in range(4):
-        progression.append(chords_for_mode[np.random.randint(len(chords_for_mode))])
+# Define the function to get a chord
+def get_chord(key, mode, chord):
+    if mode == "major":
+        notes = [
+            key + 0,
+            key + 4,
+            key + 7,
+            key + 9,
+            key + 12,
+        ]
+    elif mode == "minor":
+        notes = [
+            key + 0,
+            key + 3,
+            key + 7,
+            key + 9,
+            key + 12,
+        ]
+    return notes
 
-    return progression
+# Define the function to play a chord progression
+def play_chord_progression(chords):
+    # Create a PyAudio object
+    audio = pyaudio.PyAudio()
 
-# Define the function to play the chord progression
-def play_chord_progression(chord_progression):
-    # Get the audio files for the chords
-    audio_files = [
-        librosa.load("chords/{}.wav".format(chord))[0] for chord in chord_progression
-    ]
+    # Open a stream
+    stream = audio.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=44100,
+        frames_per_buffer=1024,
+        output=True,
+    )
 
-    # Play the audio files
-    librosa.output.play(audio_files, sr=44100)
+    # Play the chord progression
+    for chord in chords:
+        # Generate the notes
+        notes = np.array(chord)
 
-# Create the Streamlit app
+        # Convert the notes to frequencies
+        frequencies = 2**(notes / 12) * 440
+
+        # Generate a sine wave for each frequency
+        waves = np.sin(2 * np.pi * frequencies * np.arange(1024) / 44100)
+
+        # Combine the waves into a single audio signal
+        audio_signal = np.sum(waves, axis=0)
+
+        # Write the audio signal to the stream
+        stream.write(audio_signal.astype(np.int16))
+
+    # Close the stream
+    stream.close()
+
+    # Close the PyAudio object
+    audio.terminate()
+
+# Create a Streamlit app
+app = st.beta_app()
+
+# Add a title
 st.title("Chord Progression Generator")
 
-# Get the key and mode from the user
-key = st.selectbox("Key", ["C", "Dm", "Em", "Fmaj7", "Bbm7b5", "Gb7b5"])
-mode = st.selectbox("Mode", ["Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian"])
+# Add a key selector
+key = st.selectbox("Key", ["C", "Dm", "Em", "F", "G", "Am"])
+
+# Add a mode selector
+mode = st.selectbox("Mode", ["major", "minor"])
 
 # Generate a chord progression
-chord_progression = generate_chord_progression(key, mode)
-
-# Display the chord progression
-st.write("Chord progression: {}".format(chord_progression))
+chords = generate_chord_progression(key, mode)
 
 # Play the chord progression
 if st.button("Play"):
-    play_chord_progression(chord_progression)
+    play_chord_progression(chords)
+
+# Display the chord progression
+st.write("Chord progression:", chords)
