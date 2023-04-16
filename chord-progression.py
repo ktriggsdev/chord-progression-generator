@@ -3,38 +3,39 @@ import numpy as np
 import random
 
 # Define the chord progressions
-chord_progressions = [
-    ["C", "G", "Am", "F"],
-    ["Dm", "G", "C", "Am"],
-    ["Em", "A", "D", "G"],
-    ["F", "C", "G", "Am"],
+chords = [
+    [0, 4, 7],
+    [2, 6, 9],
+    [4, 7, 11],
+    [5, 9, 12],
+    [7, 11, 14],
 ]
 
 # Define the function to generate a random chord progression
 def generate_chord_progression():
-    # Get a random chord progression from the list
-    progression = random.choice(chord_progressions)
-
-    # Convert the chord progression to a list of notes
-    notes = []
-    for chord in progression:
-        notes.extend(np.array(chord))
-
-    # Return the list of notes
-    return notes
+    return random.choice(chords)
 
 # Create the Streamlit app
 st.title("Chord Progression Generator")
 
-# Get the user input
-key = st.selectbox("Key", ["C", "Dm", "Em", "F"])
-scale = st.selectbox("Scale", ["Major", "Minor"])
+# Create a slider to control the number of chords in the progression
+num_chords = st.slider("Number of chords", 1, 5)
 
 # Generate a random chord progression
-progression = generate_chord_progression()
+chord_progression = generate_chord_progression()
 
-# Play the chord progression
-st.audio(progression, format="wav")
+# Create a table to display the chord progression
+st.table(chord_progression)
 
-# Display the chord progression
-st.write("Chord progression:", progression)
+# Create a button to play the chord progression
+play_button = st.button("Play")
+
+# If the play button is clicked, play the chord progression
+if play_button:
+    # Create a list of notes for the chord progression
+    notes = []
+    for chord in chord_progression:
+        notes.append(np.array([chord[0], chord[1], chord[2]]))
+
+    # Play the notes
+    streamlit.audio(notes, format="wav")
