@@ -1,98 +1,44 @@
 import streamlit as st
 import numpy as np
-import pyaudio
-import wave
+import random
 
 # Define the chord progressions
 chord_progressions = [
     ["C", "G", "Am", "F"],
-    ["Dm", "G", "Am", "C"],
-    ["Em", "A", "Dm", "G"],
-    ["F", "C", "G", "Am"],
+    ["Dm", "G", "C", "Am"],
+    ["E", "A", "D", "G"],
+    ["F#m", "B", "E", "A"],
 ]
 
-# Define the function to generate a chord progression
-def generate_chord_progression(key, mode):
-    chords = []
-    for chord in chord_progressions:
-        chords.append(get_chord(key, mode, chord))
-    return chords
+# Define the function to generate a random chord progression
+def generate_chord_progression():
+    # Choose a random chord progression
+    progression = random.choice(chord_progressions)
 
-# Define the function to get a chord
-def get_chord(key, mode, chord):
-    if mode == "major":
-        notes = [
-            key + 0,
-            key + 4,
-            key + 7,
-            key + 9,
-            key + 12,
-        ]
-    elif mode == "minor":
-        notes = [
-            key + 0,
-            key + 3,
-            key + 7,
-            key + 9,
-            key + 12,
-        ]
-    return notes
+    # Return the chord progression
+    return progression
 
-# Define the function to play a chord progression
-def play_chord_progression(chords):
-    # Create a PyAudio object
-    audio = pyaudio.PyAudio()
+# Define the function to play the chord progression
+def play_chord_progression(progression):
+    # Create a list of notes
+    notes = []
+    for chord in progression:
+        notes.extend(chord)
 
-    # Open a stream
-    stream = audio.open(
-        format=pyaudio.paInt16,
-        channels=1,
-        rate=44100,
-        frames_per_buffer=1024,
-        output=True,
-    )
+    # Create a synthesizer
+    synthesizer = st.audio.synth()
 
-    # Play the chord progression
-    for chord in chords:
-        # Generate the notes
-        notes = np.array(chord)
+    # Play the notes
+    synthesizer.play(notes)
 
-        # Convert the notes to frequencies
-        frequencies = 2**(notes / 12) * 440
-
-        # Generate a sine wave for each frequency
-        waves = np.sin(2 * np.pi * frequencies * np.arange(1024) / 44100)
-
-        # Combine the waves into a single audio signal
-        audio_signal = np.sum(waves, axis=0)
-
-        # Write the audio signal to the stream
-        stream.write(audio_signal.astype(np.int16))
-
-    # Close the stream
-    stream.close()
-
-    # Close the PyAudio object
-    audio.terminate()
-
-# Create a Streamlit app
-app = st.beta_app()
-
-# Add a title
+# Create the app
 st.title("Chord Progression Generator")
 
-# Add a key selector
-key = st.selectbox("Key", ["C", "Dm", "Em", "F", "G", "Am"])
-
-# Add a mode selector
-mode = st.selectbox("Mode", ["major", "minor"])
-
-# Generate a chord progression
-chords = generate_chord_progression(key, mode)
-
-# Play the chord progression
-if st.button("Play"):
-    play_chord_progression(chords)
+# Generate a random chord progression
+progression = generate_chord_progression()
 
 # Display the chord progression
-st.write("Chord progression:", chords)
+st.write("Chord progression:", progression)
+
+# Play the chord progression
+play_chord_progression(progression)
