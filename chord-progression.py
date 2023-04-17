@@ -3,6 +3,9 @@ import numpy as np
 import io
 import wave
 
+st.title("Chord Progression Generator")
+st.subheader("A simple app that generates and plays back random chord progressions")
+
 SR = 22050
 DUR = st.number_input("Please enter a number for the duration")
 N = int(SR * DUR)
@@ -44,8 +47,7 @@ def sound_to_bytes(sound):
     bytes = buffer.getvalue()
     return bytes
 
-st.title("Chord Progression Generator")
-st.subheader("A simple app that generates and plays back random chord progressions")
+
 
 if st.button("Generate"):
     indices = np.random.randint(0, 7, size=8)
