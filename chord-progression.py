@@ -45,7 +45,7 @@ def sound_to_bytes(sound):
     return bytes
 
 st.title("Chord Progression Generator")
-st.subtitle("A simple app that generates and plays back random chord progressions")
+st.subheader("A simple app that generates and plays back random chord progressions")
 
 if st.button("Generate"):
     indices = np.random.randint(0, 7, size=4)
