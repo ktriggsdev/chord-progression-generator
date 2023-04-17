@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
-import soundfile as sf
 import io
+import wave
 
 SR = 22050
 DUR = 0.5
@@ -35,7 +35,12 @@ def generate_progression(indices):
 
 def sound_to_bytes(sound):
     buffer = io.BytesIO()
-    sf.write(buffer, sound, SR, format="WAV")
+    wav = wave.open(buffer, mode="wb")
+    wav.setnchannels(1)
+    wav.setsampwidth(2)
+    wav.setframerate(SR)
+    wav.writeframes((sound * 32767).astype(np.int16))
+    wav.close()
     bytes = buffer.getvalue()
     return bytes
 
