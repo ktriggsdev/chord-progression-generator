@@ -4,7 +4,7 @@ import io
 import wave
 
 SR = 22050
-DUR = 0.5
+DUR = 2.0
 N = int(SR * DUR)
 VOL = 0.5
 
