@@ -48,7 +48,7 @@ st.title("Chord Progression Generator")
 st.subheader("A simple app that generates and plays back random chord progressions")
 
 if st.button("Generate"):
-    indices = np.random.randint(0, 7, size=4)
+    indices = np.random.randint(0, 7, size=8)
     progression = generate_progression(indices)
     bytes = sound_to_bytes(progression)
     st.text(" ".join([CHORDS[i] for i in indices]))
