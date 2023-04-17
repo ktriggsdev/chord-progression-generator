@@ -1,45 +1,50 @@
 import streamlit as st
 import numpy as np
+import soundfile as sf
+import io
 
-# define constants for the frequencies, scales, chords and keys
-F = [16.35,17.32,18.35,19.45,20.6,21.83,23.12,24.5,25.96,
-     27.5,29.14,30.87]
-M = [0, 2, 4, 5, 7, 9, 11]
-m = [0, 2, 3, 5, 7, 8, 10]
-C = ["maj", "min", "min", "maj", "maj", "min", "dim"]
-c = ["min", "dim", "maj", "min", "min", "maj", "maj"]
-K = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-S = 22050
+SR = 22050
+DUR = 0.5
+N = int(SR * DUR)
+VOL = 0.5
 
-def g(k,m,l):
-  # generate a random chord progression based on a key (k), mode (m) and length (l)
-  s = M if m == "major" else m
-  h = C if m == "major" else c
-  r = K.index(k)
-  d = np.random.randint(1 ,8 ,l)
-  p = [K[(r + s[i -1]) %12] + h[i -1] for i in d]
-  return p
+CHORDS = ["C", "Dm", "Em", "F", "G", "Am", "Bdim"]
+FREQS = [[261.63, 329.63, 392.00],
+         [293.66, 349.23, 440.00],
+         [329.63, 392.00, 493.88],
+         [349.23, 440.00, 523.25],
+         [392.00, 493.88, 587.33],
+         [440.00, 523.25, 659.26],
+         [493.88, 587.33, 698.46]]
 
-def s(r,t):
-  # synthesize a chord from a root note (r) and a chord type (t)
-  i = {"maj": [0 ,4 ,7], 
-       "min": [0 ,3 ,7], 
-       "dim": [0 ,3 ,6], 
-       "aug": [0 ,4 ,8]}
-  f = F[K.index(r)]
-  n = [f * (2 ** (j /12)) for j in i[t]]
-  return n
+def generate_chord(freqs):
+    chord = np.zeros(N)
+    for f in freqs:
+        wave = np.sin(2 * np.pi * f * np.arange(N) / SR)
+        chord += wave
+    chord = VOL * chord / np.max(np.abs(chord))
+    return chord
 
-def p(p):
-   # play back a chord progression (p) using st.audio 
-   a = np.array([])
-   for x in p:
-     y = x[:-3]
-     z = x[-3:]
-     w = s(y,z)
-     t = np.linspace(0 ,1 ,S)
-     v = np.array([])
-     for u in w:
-       v += np.sin(2 * np.pi * u * t)
-     a = np.append(a,v)
-   st.audio(a,S)
+def generate_progression(indices):
+    progression = []
+    for i in indices:
+        chord = generate_chord(FREQS[i])
+        progression.append(chord)
+    progression = np.concatenate(progression)
+    return progression
+
+def sound_to_bytes(sound):
+    buffer = io.BytesIO()
+    sf.write(buffer, sound, SR, format="WAV")
+    bytes = buffer.getvalue()
+    return bytes
+
+st.title("Chord Progression Generator")
+st.subtitle("A simple app that generates and plays back random chord progressions")
+
+if st.button("Generate"):
+    indices = np.random.randint(0, 7, size=4)
+    progression = generate_progression(indices)
+    bytes = sound_to_bytes(progression)
+    st.text(" ".join([CHORDS[i] for i in indices]))
+    st.audio(bytes)
