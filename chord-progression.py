@@ -1,41 +1,50 @@
 import streamlit as st
 import numpy as np
-import random
+import librosa
+import soundfile as sf
+import tempfile
 
-# Define the chord progressions
-chords = [
-    [0, 4, 7],
-    [2, 6, 9],
-    [4, 7, 11],
-    [5, 9, 12],
-    [7, 11, 14],
-]
+# define constants for the frequencies, scales, chords and keys
+F = [16.35,17.32,18.35,19.45,20.6,21.83,23.12,24.5,25.96,
+     27.5,29.14,30.87]
+M = [0, 2, 4, 5, 7, 9, 11]
+m = [0, 2, 3, 5, 7, 8, 10]
+C = ["maj", "min", "min", "maj", "maj", "min", "dim"]
+c = ["min", "dim", "maj", "min", "min", "maj", "maj"]
+K = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+S = 22050
 
-# Define the function to generate a random chord progression
-def generate_chord_progression():
-    return random.choice(chords)
+def g(k,m,l):
+  # generate a random chord progression based on a key (k), mode (m) and length (l)
+  s = M if m == "major" else m
+  h = C if m == "major" else c
+  r = K.index(k)
+  d = np.random.randint(1 ,8 ,l)
+  p = [K[(r + s[i -1]) %12] + h[i -1] for i in d]
+  return p
 
-# Create the Streamlit app
-st.title("Chord Progression Generator")
+def s(r,t):
+  # synthesize a chord from a root note (r) and a chord type (t)
+  i = {"maj": [0 ,4 ,7], 
+       "min": [0 ,3 ,7], 
+       "dim": [0 ,3 ,6], 
+       "aug": [0 ,4 ,8]}
+  f = F[K.index(r)]
+  n = [f * (2 ** (j /12)) for j in i[t]]
+  return n
 
-# Create a slider to control the number of chords in the progression
-num_chords = st.slider("Number of chords", 1, 5)
-
-# Generate a random chord progression
-chord_progression = generate_chord_progression()
-
-# Create a table to display the chord progression
-st.table(chord_progression)
-
-# Create a button to play the chord progression
-play_button = st.button("Play")
-
-# If the play button is clicked, play the chord progression
-if play_button:
-    # Create a list of notes for the chord progression
-    notes = []
-    for chord in chord_progression:
-        notes.append(np.array([chord[0], chord[1], chord[2]]))
-
-    # Play the notes
-    streamlit.audio(notes, format="wav")
+def p(p):
+   # play back a chord progression (p) using librosa and soundfile modules 
+   a = np.array([])
+   for x in p:
+     y = x[:-3]
+     z = x[-3:]
+     w = s(y,z)
+     t = np.linspace(0 ,1 ,S)
+     v = np.array([])
+     for u in w:
+       v += np.sin(2 * np.pi * u * t)
+     a = np.append(a,v)
+   f = tempfile.NamedTemporaryFile()
+   sf.write(f.name,a,S)
+   st.audio(f.name)
