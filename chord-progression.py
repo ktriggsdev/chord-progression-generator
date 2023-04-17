@@ -1,8 +1,5 @@
 import streamlit as st
 import numpy as np
-import librosa
-import soundfile as sf
-import tempfile
 
 # define constants for the frequencies, scales, chords and keys
 F = [16.35,17.32,18.35,19.45,20.6,21.83,23.12,24.5,25.96,
@@ -34,7 +31,7 @@ def s(r,t):
   return n
 
 def p(p):
-   # play back a chord progression (p) using librosa and soundfile modules 
+   # play back a chord progression (p) using st.audio 
    a = np.array([])
    for x in p:
      y = x[:-3]
@@ -45,6 +42,4 @@ def p(p):
      for u in w:
        v += np.sin(2 * np.pi * u * t)
      a = np.append(a,v)
-   f = tempfile.NamedTemporaryFile()
-   sf.write(f.name,a,S)
-   st.audio(f.name)
+   st.audio(a,S)
