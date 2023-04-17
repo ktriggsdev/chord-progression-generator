@@ -4,7 +4,7 @@ import io
 import wave
 
 SR = 22050
-DUR = 2.0
+DUR = st.number_input("Please enter a number for the duration")
 N = int(SR * DUR)
 VOL = 0.5
 
