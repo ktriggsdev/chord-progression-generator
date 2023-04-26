@@ -55,8 +55,7 @@ def generate_progression(indices):
     for i in indices:
         chord = generate_chord(FREQS[i])
         progression.append(chord)
-    progression = np.concatenate(progression)
-    return progression
+    return np.concatenate(progression)
 
 def sound_to_bytes(sound):
     buffer = io.BytesIO()
@@ -66,8 +65,7 @@ def sound_to_bytes(sound):
     wav.setframerate(SR)
     wav.writeframes((sound * 32767).astype(np.int16))
     wav.close()
-    bytes = buffer.getvalue()
-    return bytes
+    return buffer.getvalue()
 
 
 
